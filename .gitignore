@@ -3,6 +3,10 @@
 **/obj/
 weekly
 
+# Logs
+logs/
+*.log
+
 # User-specific files
 *.user
 *.suo
