@@ -1,6 +1,7 @@
 # Build outputs
 **/bin/
 **/obj/
+weekly
 
 # User-specific files
 *.user
