@@ -1,0 +1,20 @@
+{"id":"q001","question":"A service’s 5xx error rate suddenly spikes—what’s the first metric/signal you check?","tags":["incident","http","triage"]}
+{"id":"q002","question":"An API’s p95 latency increases but the error rate stays normal—how do you quickly determine whether the bottleneck is upstream, downstream, or resource-related?","tags":["latency","performance","triage"]}
+{"id":"q003","question":"In Kubernetes, a Deployment’s Pods are frequently restarting (CrashLoopBackOff). What troubleshooting order would you follow?","tags":["k8s","crashloop","runbook"]}
+{"id":"q004","question":"CPU is pegged at 100% for 10 minutes—how do you distinguish between a traffic surge, an infinite loop, and GC/lock contention?","tags":["cpu","performance","diagnosis"]}
+{"id":"q005","question":"Memory keeps increasing until OOM and a leak is suspected—what’s the first step to verify it?","tags":["memory","oom","diagnosis"]}
+{"id":"q006","question":"A database connection pool is exhausted (too many connections / pool exhausted). What are the common root causes and troubleshooting steps?","tags":["database","connections","triage"]}
+{"id":"q007","question":"Users report “login is slow” but there are no obvious alerts—what observability data should you add first?","tags":["observability","metrics","slo"]}
+{"id":"q008","question":"A service is returning lots of 429s (rate limit). How do you tell whether it’s your own throttling or downstream throttling?","tags":["http","rate_limit","dependencies"]}
+{"id":"q009","question":"After a new release, the error rate increases—how do you roll back quickly and confirm the rollback worked?","tags":["deploy","rollback","incident"]}
+{"id":"q010","question":"The same endpoint behaves very differently across regions. What’s the first step to confirm whether it’s network, dependency, or configuration differences?","tags":["multi_region","network","triage"]}
+{"id":"q011","question":"Logs show many timeouts, but the dependency team claims they’re fine. How do you build an evidence trail to define the ownership boundary?","tags":["timeouts","logging","evidence"]}
+{"id":"q012","question":"How do you narrow the troubleshooting time window—from “it was slow today” to a queryable range? What follow-up questions do you ask?","tags":["clarification","time_range","triage"]}
+{"id":"q013","question":"When an alert fires (5xx + latency), how do you choose the top 3 dashboards/charts to look at first?","tags":["dashboards","incident","triage"]}
+{"id":"q014","question":"A downstream dependency occasionally returns 500. How do you implement a fallback/degradation on the application side and verify it’s working?","tags":["resilience","fallback","dependencies"]}
+{"id":"q015","question":"How do you tell whether intermittent failures are caused by DNS issues? Which metrics or log fields do you check?","tags":["dns","network","diagnosis"]}
+{"id":"q016","question":"A message queue backlog keeps growing and consumers can’t keep up. How do you quickly tell whether producers are too fast or consumers are slower?","tags":["queue","backlog","throughput"]}
+{"id":"q017","question":"Disk I/O spikes and latency rises. How do you distinguish between log writing, database I/O, and temporary-file churn?","tags":["io","disk","performance"]}
+{"id":"q018","question":"TLS/certificate-related errors suddenly increase (handshake failed / cert expired). What’s the first step to confirm blast radius and root cause?","tags":["tls","cert","incident"]}
+{"id":"q019","question":"How do you respond with incomplete info: the only message is “the service is down”? Do you refuse, ask clarifying questions, or provide a generic checklist—and why?","tags":["refusal","clarification","policy"]}
+{"id":"q020","question":"When a service’s 5xx errors spike, how do you break troubleshooting into four layers—ingress traffic, application, dependencies, and infrastructure?","tags":["http","layered_diagnosis","triage"]}
