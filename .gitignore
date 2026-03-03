@@ -7,9 +7,6 @@ weekly
 logs/
 *.log
 
-# English drill notes
-english-drill/
-
 # User-specific files
 *.user
 *.suo
