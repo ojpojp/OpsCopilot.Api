@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using OpsCopilot.Api.Kb;
 using Serilog;
 using Serilog.Events;
 
@@ -34,6 +35,8 @@ builder.Host.UseSerilog();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+builder.Services.Configure<KbChunkingOptions>(builder.Configuration.GetSection(KbChunkingOptions.SectionName));
+builder.Services.AddSingleton<MarkdownChunker>();
 
 var app = builder.Build();
 
@@ -253,6 +256,24 @@ app.MapPost("/ask", async (
 })
 .WithName("Ask");
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapPost("/debug/chunk-preview", (
+        ChunkPreviewRequest request,
+        MarkdownChunker chunker,
+        Microsoft.Extensions.Options.IOptions<KbChunkingOptions> options) =>
+    {
+        var chunks = chunker.Chunk(request.Markdown ?? string.Empty, options.Value);
+        return Results.Ok(new
+        {
+            options = options.Value,
+            chunkCount = chunks.Count,
+            chunks,
+        });
+    })
+    .WithName("ChunkPreview");
+}
+
 try
 {
     app.Run();
@@ -265,3 +286,5 @@ finally
 public sealed record AskRequest(string Question);
 
 public sealed record AskResponse(Guid RequestId, long LatencyMs, string Answer);
+
+public sealed record ChunkPreviewRequest(string Markdown);
