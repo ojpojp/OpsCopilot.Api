@@ -1,0 +1,106 @@
+{
+  "name": "opscopilot-kb",
+  "fields": [
+    {
+      "name": "id",
+      "type": "Edm.String",
+      "key": true,
+      "searchable": false,
+      "filterable": true,
+      "sortable": true,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "docId",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": true,
+      "sortable": true,
+      "facetable": true,
+      "retrievable": true
+    },
+    {
+      "name": "title",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": true,
+      "sortable": true,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "sourcePath",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": true,
+      "sortable": true,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "chunkIndex",
+      "type": "Edm.Int32",
+      "searchable": false,
+      "filterable": true,
+      "sortable": true,
+      "facetable": true,
+      "retrievable": true
+    },
+    {
+      "name": "section",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": true,
+      "sortable": true,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "content",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "contentHash",
+      "type": "Edm.String",
+      "searchable": false,
+      "filterable": true,
+      "sortable": false,
+      "facetable": false,
+      "retrievable": true
+    },
+    {
+      "name": "tags",
+      "type": "Collection(Edm.String)",
+      "searchable": false,
+      "filterable": true,
+      "sortable": false,
+      "facetable": true,
+      "retrievable": true
+    },
+    {
+      "name": "updatedAt",
+      "type": "Edm.DateTimeOffset",
+      "searchable": false,
+      "filterable": true,
+      "sortable": true,
+      "facetable": false,
+      "retrievable": true
+    }
+  ],
+  "scoringProfiles": [],
+  "suggesters": [],
+  "analyzers": [],
+  "normalizers": [],
+  "tokenizers": [],
+  "tokenFilters": [],
+  "charFilters": [],
+  "similarity": {
+    "@odata.type": "#Microsoft.Azure.Search.BM25Similarity"
+  }
+}
