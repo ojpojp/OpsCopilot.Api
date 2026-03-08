@@ -35,6 +35,11 @@ Health:
 curl http://localhost:5200/health
 ```
 
+Ingest KB:
+```bash
+curl -X POST http://localhost:5200/ingest-kb
+```
+
 Ask:
 ```bash
 curl -X POST http://localhost:5200/ask \
@@ -49,6 +54,11 @@ Expected response shape:
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 
+`/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, and returns:
+- `documentsIngested`
+- `chunksCreated`
+- `failures` (`path` + `reason`)
+
 ## Using `OpsCopilot.Api.http`
 File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 - VS Code: install the `REST Client` extension (`humao.rest-client`), then click `Send Request`.
@@ -61,4 +71,3 @@ File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 ## Eval (W1)
 - Question set: `./eval/questions.jsonl`
 - Failure taxonomy: `./eval/failure-taxonomy.md`
-

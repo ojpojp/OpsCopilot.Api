@@ -36,7 +36,9 @@ builder.Host.UseSerilog();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 builder.Services.Configure<KbChunkingOptions>(builder.Configuration.GetSection(KbChunkingOptions.SectionName));
+builder.Services.Configure<KbIngestionOptions>(builder.Configuration.GetSection(KbIngestionOptions.SectionName));
 builder.Services.AddSingleton<MarkdownChunker>();
+builder.Services.AddSingleton<KbIngestionService>();
 
 var app = builder.Build();
 
@@ -256,6 +258,51 @@ app.MapPost("/ask", async (
 })
 .WithName("Ask");
 
+app.MapPost("/ingest-kb", async (
+    Microsoft.Extensions.Options.IOptions<KbIngestionOptions> ingestionOptions,
+    Microsoft.Extensions.Options.IOptions<KbChunkingOptions> chunkingOptions,
+    KbIngestionService ingestionService,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
+{
+    var sourceDirectory = ingestionOptions.Value.SourceDirectory;
+    if (string.IsNullOrWhiteSpace(sourceDirectory))
+    {
+        return Results.BadRequest(new
+        {
+            error = "missing_config",
+            message = "KbIngestion:SourceDirectory is required",
+        });
+    }
+
+    if (!Directory.Exists(sourceDirectory))
+    {
+        return Results.BadRequest(new
+        {
+            error = "invalid_config",
+            message = $"Source directory does not exist: {sourceDirectory}",
+        });
+    }
+
+    var result = await ingestionService.IngestDirectoryAsync(
+        sourceDirectory,
+        chunkingOptions.Value,
+        cancellationToken);
+
+    logger.LogInformation(
+        "KB ingest completed sourceDirectory={SourceDirectory} documentsIngested={DocumentsIngested} chunksCreated={ChunksCreated} failures={FailureCount}",
+        sourceDirectory,
+        result.DocumentsIngested,
+        result.ChunksCreated,
+        result.Failures.Count);
+
+    return Results.Ok(new IngestKbResponse(
+        result.DocumentsIngested,
+        result.ChunksCreated,
+        result.Failures));
+})
+.WithName("IngestKb");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapPost("/debug/chunk-preview", (
@@ -288,3 +335,8 @@ public sealed record AskRequest(string Question);
 public sealed record AskResponse(Guid RequestId, long LatencyMs, string Answer);
 
 public sealed record ChunkPreviewRequest(string Markdown);
+
+public sealed record IngestKbResponse(
+    int DocumentsIngested,
+    int ChunksCreated,
+    IReadOnlyList<KbIngestionFailure> Failures);

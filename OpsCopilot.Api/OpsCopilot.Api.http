@@ -14,6 +14,11 @@ Content-Type: application/json
 
 ###
 
+POST {{baseUrl}}/ingest-kb
+Accept: application/json
+
+###
+
 POST {{baseUrl}}/debug/chunk-preview
 Content-Type: application/json
 
