@@ -16,9 +16,13 @@ Required:
 - `AZURE_OPENAI_DEPLOYMENT` (your deployment name, e.g. `opscopilot-gpt-5-chat`)
 - `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` (your embeddings deployment name)
 - `AZURE_OPENAI_API_VERSION` (example: `2025-01-01-preview`)
+- `AZURE_SEARCH_ENDPOINT` (example: `https://<search-name>.search.windows.net`)
+- `AZURE_SEARCH_API_KEY`
+- `AZURE_SEARCH_INDEX`
 
 Optional:
 - `LOG_DIR` (default: `./OpsCopilot.Api/logs`)
+- `AZURE_SEARCH_API_VERSION` (default: `2024-07-01`)
 
 Notes:
 - Do not commit secrets. Prefer shell `export` or `dotnet user-secrets`.
@@ -55,11 +59,14 @@ Expected response shape:
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 
-`/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, generates one embedding per chunk, and returns:
+`/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, generates one embedding per chunk, uploads them to Azure AI Search, and returns:
 - `documentsIngested`
 - `chunksCreated`
 - `embeddingsCreated`
+- `indexedDocuments`
 - `failures` (`path` + `reason`)
+
+The target Azure AI Search index must include a vector field named `contentVector` that matches the embedding dimension of your selected embeddings model.
 
 ## Using `OpsCopilot.Api.http`
 File: `./OpsCopilot.Api/OpsCopilot.Api.http`

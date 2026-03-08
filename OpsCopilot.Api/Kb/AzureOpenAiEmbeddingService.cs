@@ -25,10 +25,10 @@ public sealed class AzureOpenAiEmbeddingService
     {
         var missing = new List<string>(capacity: 4);
 
-        if (string.IsNullOrWhiteSpace(_options.Endpoint)) missing.Add("AzureOpenAiEmbeddings:Endpoint");
-        if (string.IsNullOrWhiteSpace(_options.ApiKey)) missing.Add("AzureOpenAiEmbeddings:ApiKey");
-        if (string.IsNullOrWhiteSpace(_options.Deployment)) missing.Add("AzureOpenAiEmbeddings:Deployment");
-        if (string.IsNullOrWhiteSpace(_options.ApiVersion)) missing.Add("AzureOpenAiEmbeddings:ApiVersion");
+        if (string.IsNullOrWhiteSpace(_options.Endpoint)) missing.Add("AZURE_OPENAI_ENDPOINT");
+        if (string.IsNullOrWhiteSpace(_options.ApiKey)) missing.Add("AZURE_OPENAI_API_KEY");
+        if (string.IsNullOrWhiteSpace(_options.Deployment)) missing.Add("AZURE_OPENAI_EMBEDDING_DEPLOYMENT");
+        if (string.IsNullOrWhiteSpace(_options.ApiVersion)) missing.Add("AZURE_OPENAI_API_VERSION");
 
         return missing;
     }
@@ -122,4 +122,3 @@ public sealed class AzureOpenAiEmbeddingService
         }
     }
 }
-

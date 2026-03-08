@@ -19,5 +19,6 @@ public sealed record KbIngestionResult(
     int DocumentsIngested,
     int ChunksCreated,
     int EmbeddingsCreated,
+    int IndexedDocuments,
     IReadOnlyList<KbIngestionFailure> Failures,
     IReadOnlyList<KbChunkDocument> Chunks);

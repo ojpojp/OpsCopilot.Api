@@ -44,8 +44,17 @@ builder.Services.Configure<AzureOpenAiEmbeddingsOptions>(options =>
     options.Deployment = builder.Configuration["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"];
     options.ApiVersion = builder.Configuration["AZURE_OPENAI_API_VERSION"];
 });
+builder.Services.Configure<AzureSearchOptions>(options =>
+{
+    options.Endpoint = builder.Configuration["AZURE_SEARCH_ENDPOINT"];
+    options.ApiKey = builder.Configuration["AZURE_SEARCH_API_KEY"];
+    options.IndexName = builder.Configuration["AZURE_SEARCH_INDEX"];
+    options.ApiVersion = builder.Configuration["AZURE_SEARCH_API_VERSION"] ?? options.ApiVersion;
+});
+builder.Services.Configure<KbIngestionPipelineOptions>(builder.Configuration.GetSection(KbIngestionPipelineOptions.SectionName));
 builder.Services.AddSingleton<MarkdownChunker>();
 builder.Services.AddSingleton<AzureOpenAiEmbeddingService>();
+builder.Services.AddSingleton<AzureSearchIndexingService>();
 builder.Services.AddSingleton<KbIngestionService>();
 
 var app = builder.Build();
@@ -270,6 +279,7 @@ app.MapPost("/ingest-kb", async (
     Microsoft.Extensions.Options.IOptions<KbIngestionOptions> ingestionOptions,
     Microsoft.Extensions.Options.IOptions<KbChunkingOptions> chunkingOptions,
     AzureOpenAiEmbeddingService embeddingService,
+    AzureSearchIndexingService searchIndexingService,
     KbIngestionService ingestionService,
     ILogger<Program> logger,
     CancellationToken cancellationToken) =>
@@ -303,6 +313,16 @@ app.MapPost("/ingest-kb", async (
         });
     }
 
+    var missingSearchConfig = searchIndexingService.GetMissingConfiguration();
+    if (missingSearchConfig.Count > 0)
+    {
+        return Results.BadRequest(new
+        {
+            error = "missing_config",
+            missing = missingSearchConfig,
+        });
+    }
+
     var result = await ingestionService.IngestDirectoryAsync(
         sourceDirectory,
         chunkingOptions.Value,
@@ -319,6 +339,7 @@ app.MapPost("/ingest-kb", async (
         result.DocumentsIngested,
         result.ChunksCreated,
         result.EmbeddingsCreated,
+        result.IndexedDocuments,
         result.Failures));
 })
 .WithName("IngestKb");
@@ -360,4 +381,5 @@ public sealed record IngestKbResponse(
     int DocumentsIngested,
     int ChunksCreated,
     int EmbeddingsCreated,
+    int IndexedDocuments,
     IReadOnlyList<KbIngestionFailure> Failures);
