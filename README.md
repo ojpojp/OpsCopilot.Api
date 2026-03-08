@@ -25,7 +25,28 @@ Optional:
 - `AZURE_SEARCH_API_VERSION` (default: `2024-07-01`)
 
 Notes:
-- Do not commit secrets. Prefer shell `export` or `dotnet user-secrets`.
+- Do not commit secrets. Prefer `dotnet user-secrets` for local development.
+
+Set local secrets:
+```bash
+dotnet user-secrets init --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+
+dotnet user-secrets set "AZURE_OPENAI_ENDPOINT" "https://your-resource.openai.azure.com/" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_OPENAI_API_KEY" "your-openai-key" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_OPENAI_DEPLOYMENT" "opscopilot-gpt-5-chat" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_OPENAI_EMBEDDING_DEPLOYMENT" "opscopilot-embedding" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_OPENAI_API_VERSION" "2025-01-01-preview" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_SEARCH_ENDPOINT" "https://your-search.search.windows.net" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_SEARCH_API_KEY" "your-search-key" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_SEARCH_INDEX" "opscopilot-kb" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+```
+
+Check current secrets:
+```bash
+dotnet user-secrets list --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+```
+
+`dotnet user-secrets` is loaded automatically in `Development`, so the app can read these values without code changes.
 
 ## Run
 ```bash
