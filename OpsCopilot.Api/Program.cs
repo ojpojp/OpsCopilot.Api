@@ -37,7 +37,15 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 builder.Services.Configure<KbChunkingOptions>(builder.Configuration.GetSection(KbChunkingOptions.SectionName));
 builder.Services.Configure<KbIngestionOptions>(builder.Configuration.GetSection(KbIngestionOptions.SectionName));
+builder.Services.Configure<AzureOpenAiEmbeddingsOptions>(options =>
+{
+    options.Endpoint = builder.Configuration["AZURE_OPENAI_ENDPOINT"];
+    options.ApiKey = builder.Configuration["AZURE_OPENAI_API_KEY"];
+    options.Deployment = builder.Configuration["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"];
+    options.ApiVersion = builder.Configuration["AZURE_OPENAI_API_VERSION"];
+});
 builder.Services.AddSingleton<MarkdownChunker>();
+builder.Services.AddSingleton<AzureOpenAiEmbeddingService>();
 builder.Services.AddSingleton<KbIngestionService>();
 
 var app = builder.Build();
@@ -261,6 +269,7 @@ app.MapPost("/ask", async (
 app.MapPost("/ingest-kb", async (
     Microsoft.Extensions.Options.IOptions<KbIngestionOptions> ingestionOptions,
     Microsoft.Extensions.Options.IOptions<KbChunkingOptions> chunkingOptions,
+    AzureOpenAiEmbeddingService embeddingService,
     KbIngestionService ingestionService,
     ILogger<Program> logger,
     CancellationToken cancellationToken) =>
@@ -284,6 +293,16 @@ app.MapPost("/ingest-kb", async (
         });
     }
 
+    var missingEmbeddingsConfig = embeddingService.GetMissingConfiguration();
+    if (missingEmbeddingsConfig.Count > 0)
+    {
+        return Results.BadRequest(new
+        {
+            error = "missing_config",
+            missing = missingEmbeddingsConfig,
+        });
+    }
+
     var result = await ingestionService.IngestDirectoryAsync(
         sourceDirectory,
         chunkingOptions.Value,
@@ -299,6 +318,7 @@ app.MapPost("/ingest-kb", async (
     return Results.Ok(new IngestKbResponse(
         result.DocumentsIngested,
         result.ChunksCreated,
+        result.EmbeddingsCreated,
         result.Failures));
 })
 .WithName("IngestKb");
@@ -339,4 +359,5 @@ public sealed record ChunkPreviewRequest(string Markdown);
 public sealed record IngestKbResponse(
     int DocumentsIngested,
     int ChunksCreated,
+    int EmbeddingsCreated,
     IReadOnlyList<KbIngestionFailure> Failures);

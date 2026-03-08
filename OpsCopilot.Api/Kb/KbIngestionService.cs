@@ -6,10 +6,12 @@ namespace OpsCopilot.Api.Kb;
 public sealed class KbIngestionService
 {
     private readonly MarkdownChunker _chunker;
+    private readonly AzureOpenAiEmbeddingService _embeddingService;
 
-    public KbIngestionService(MarkdownChunker chunker)
+    public KbIngestionService(MarkdownChunker chunker, AzureOpenAiEmbeddingService embeddingService)
     {
         _chunker = chunker;
+        _embeddingService = embeddingService;
     }
 
     public async Task<KbIngestionResult> IngestDirectoryAsync(
@@ -25,6 +27,7 @@ public sealed class KbIngestionService
         var failures = new List<KbIngestionFailure>();
         var chunks = new List<KbChunkDocument>();
         var documentsIngested = 0;
+        var embeddingsCreated = 0;
 
         foreach (var filePath in markdownFiles)
         {
@@ -42,6 +45,8 @@ public sealed class KbIngestionService
                 for (var index = 0; index < chunkPreviews.Count; index++)
                 {
                     var preview = chunkPreviews[index];
+                    var embedding = await _embeddingService.GenerateEmbeddingAsync(preview.Content, cancellationToken);
+
                     chunks.Add(new KbChunkDocument(
                         DocId: docId,
                         Title: title,
@@ -52,7 +57,10 @@ public sealed class KbIngestionService
                         Content: preview.Content,
                         ContentHash: ComputeSha256(preview.Content),
                         Tags: Array.Empty<string>(),
-                        UpdatedAt: fileInfo.LastWriteTimeUtc));
+                        UpdatedAt: fileInfo.LastWriteTimeUtc,
+                        Embedding: embedding));
+
+                    embeddingsCreated++;
                 }
 
                 documentsIngested++;
@@ -66,6 +74,7 @@ public sealed class KbIngestionService
         return new KbIngestionResult(
             DocumentsIngested: documentsIngested,
             ChunksCreated: chunks.Count,
+            EmbeddingsCreated: embeddingsCreated,
             Failures: failures,
             Chunks: chunks);
     }

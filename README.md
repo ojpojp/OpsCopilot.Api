@@ -14,6 +14,7 @@ Required:
 - `AZURE_OPENAI_ENDPOINT` (example: `https://<resource-name>.openai.azure.com/`)
 - `AZURE_OPENAI_API_KEY`
 - `AZURE_OPENAI_DEPLOYMENT` (your deployment name, e.g. `opscopilot-gpt-5-chat`)
+- `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` (your embeddings deployment name)
 - `AZURE_OPENAI_API_VERSION` (example: `2025-01-01-preview`)
 
 Optional:
@@ -54,9 +55,10 @@ Expected response shape:
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 
-`/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, and returns:
+`/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, generates one embedding per chunk, and returns:
 - `documentsIngested`
 - `chunksCreated`
+- `embeddingsCreated`
 - `failures` (`path` + `reason`)
 
 ## Using `OpsCopilot.Api.http`

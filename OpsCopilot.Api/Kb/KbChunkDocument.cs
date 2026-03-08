@@ -10,13 +10,14 @@ public sealed record KbChunkDocument(
     string Content,
     string ContentHash,
     IReadOnlyList<string> Tags,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    IReadOnlyList<float>? Embedding = null);
 
 public sealed record KbIngestionFailure(string Path, string Reason);
 
 public sealed record KbIngestionResult(
     int DocumentsIngested,
     int ChunksCreated,
+    int EmbeddingsCreated,
     IReadOnlyList<KbIngestionFailure> Failures,
     IReadOnlyList<KbChunkDocument> Chunks);
-

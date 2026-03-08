@@ -17,6 +17,13 @@ Content-Type: application/json
 POST {{baseUrl}}/ingest-kb
 Accept: application/json
 
+# Requires:
+# - KbIngestion:SourceDirectory
+# - AZURE_OPENAI_ENDPOINT
+# - AZURE_OPENAI_API_KEY
+# - AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+# - AZURE_OPENAI_API_VERSION
+
 ###
 
 POST {{baseUrl}}/debug/chunk-preview
