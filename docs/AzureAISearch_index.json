@@ -1,96 +1,141 @@
 {
+  "@odata.etag": "\"0x8DE7D478F568D48\"",
   "name": "opscopilot-kb",
+  "purviewEnabled": false,
   "fields": [
     {
       "name": "id",
       "type": "Edm.String",
-      "key": true,
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": false,
-      "retrievable": true
+      "key": true,
+      "synonymMaps": []
     },
     {
       "name": "docId",
       "type": "Edm.String",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": true,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "title",
       "type": "Edm.String",
       "searchable": true,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "sourcePath",
       "type": "Edm.String",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "chunkIndex",
       "type": "Edm.Int32",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": true,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "section",
       "type": "Edm.String",
       "searchable": true,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "content",
       "type": "Edm.String",
       "searchable": true,
       "filterable": false,
+      "retrievable": true,
+      "stored": true,
       "sortable": false,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
+    },
+    {
+      "name": "contentVector",
+      "type": "Collection(Edm.Single)",
+      "searchable": true,
+      "filterable": false,
+      "retrievable": false,
+      "stored": false,
+      "sortable": false,
+      "facetable": false,
+      "key": false,
+      "dimensions": 1536,
+      "vectorSearchProfile": "content-vector-profile",
+      "synonymMaps": []
     },
     {
       "name": "contentHash",
       "type": "Edm.String",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": false,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "tags",
       "type": "Collection(Edm.String)",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": false,
       "facetable": true,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     },
     {
       "name": "updatedAt",
       "type": "Edm.DateTimeOffset",
       "searchable": false,
       "filterable": true,
+      "retrievable": true,
+      "stored": true,
       "sortable": true,
       "facetable": false,
-      "retrievable": true
+      "key": false,
+      "synonymMaps": []
     }
   ],
   "scoringProfiles": [],
@@ -102,5 +147,27 @@
   "charFilters": [],
   "similarity": {
     "@odata.type": "#Microsoft.Azure.Search.BM25Similarity"
+  },
+  "vectorSearch": {
+    "algorithms": [
+      {
+        "name": "content-hnsw",
+        "kind": "hnsw",
+        "hnswParameters": {
+          "metric": "cosine",
+          "m": 4,
+          "efConstruction": 400,
+          "efSearch": 500
+        }
+      }
+    ],
+    "profiles": [
+      {
+        "name": "content-vector-profile",
+        "algorithm": "content-hnsw"
+      }
+    ],
+    "vectorizers": [],
+    "compressions": []
   }
 }
