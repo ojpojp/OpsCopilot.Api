@@ -52,9 +52,11 @@ builder.Services.Configure<AzureSearchOptions>(options =>
     options.ApiVersion = builder.Configuration["AZURE_SEARCH_API_VERSION"] ?? options.ApiVersion;
 });
 builder.Services.Configure<KbIngestionPipelineOptions>(builder.Configuration.GetSection(KbIngestionPipelineOptions.SectionName));
+builder.Services.Configure<KbRetrievalOptions>(builder.Configuration.GetSection(KbRetrievalOptions.SectionName));
 builder.Services.AddSingleton<MarkdownChunker>();
 builder.Services.AddSingleton<AzureOpenAiEmbeddingService>();
 builder.Services.AddSingleton<AzureSearchIndexingService>();
+builder.Services.AddSingleton<AzureSearchRetrievalService>();
 builder.Services.AddSingleton<KbIngestionService>();
 
 var app = builder.Build();
@@ -159,6 +161,9 @@ static string? TryExtractAzureOpenAiErrorMessage(string json)
 app.MapPost("/ask", async (
     AskRequest request,
     IConfiguration config,
+    Microsoft.Extensions.Options.IOptions<KbRetrievalOptions> retrievalOptions,
+    AzureOpenAiEmbeddingService embeddingService,
+    AzureSearchRetrievalService retrievalService,
     IHttpClientFactory httpClientFactory,
     ILogger<Program> logger,
     CancellationToken cancellationToken) =>
@@ -195,15 +200,87 @@ app.MapPost("/ask", async (
         });
     }
 
+    var missingEmbeddingsConfig = embeddingService.GetMissingConfiguration();
+    if (missingEmbeddingsConfig.Count > 0)
+    {
+        return Results.BadRequest(new
+        {
+            error = "missing_config",
+            missing = missingEmbeddingsConfig,
+        });
+    }
+
+    var missingSearchConfig = retrievalService.GetMissingConfiguration();
+    if (missingSearchConfig.Count > 0)
+    {
+        return Results.BadRequest(new
+        {
+            error = "missing_config",
+            missing = missingSearchConfig,
+        });
+    }
+
+    IReadOnlyList<float> questionEmbedding;
+    IReadOnlyList<RetrievedChunk> retrievedChunks;
+    try
+    {
+        questionEmbedding = await embeddingService.GenerateEmbeddingAsync(request.Question, cancellationToken);
+        retrievedChunks = await retrievalService.SearchAsync(
+            questionEmbedding,
+            retrievalOptions.Value.TopK,
+            cancellationToken);
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+        return Results.Problem(statusCode: StatusCodes.Status499ClientClosedRequest, title: "Request canceled");
+    }
+    catch (Exception ex)
+    {
+        stopwatch.Stop();
+        logger.LogError(ex, "Ask retrieval {RequestId} failed after {LatencyMs}ms", requestId, stopwatch.ElapsedMilliseconds);
+        return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Retrieval failed");
+    }
+
+    if (retrievedChunks.Count == 0)
+    {
+        stopwatch.Stop();
+        logger.LogInformation(
+            "Ask request {RequestId} no retrieval hits latencyMs={LatencyMs}",
+            requestId,
+            stopwatch.ElapsedMilliseconds);
+
+        return Results.Ok(new AskResponse(
+            requestId,
+            stopwatch.ElapsedMilliseconds,
+            "I could not find enough evidence in the knowledge base to answer this question.",
+            Array.Empty<AskCitation>(),
+            new AskRetrieval(retrievalOptions.Value.TopK, 0)));
+    }
+
     var requestUri = new Uri(
         $"{endpoint!.TrimEnd('/')}/openai/deployments/{Uri.EscapeDataString(deployment!)}/chat/completions?api-version={Uri.EscapeDataString(apiVersion!)}",
         UriKind.Absolute);
+
+    var groundedContext = string.Join(
+        "\n\n",
+        retrievedChunks.Select(static (chunk, idx) =>
+            $"[Doc {idx + 1}] title={chunk.Title}; sourcePath={chunk.SourcePath}; section={chunk.Section ?? "n/a"}; chunkIndex={chunk.ChunkIndex}\n{chunk.Content}"));
 
     var payload = new
     {
         messages = new[]
         {
-            new { role = "user", content = request.Question },
+            new
+            {
+                role = "system",
+                content = "You are an ops copilot. Answer only using the provided knowledge base evidence. If the evidence is insufficient, say so clearly. Do not invent runbooks, incidents, or commands."
+            },
+            new
+            {
+                role = "user",
+                content =
+                    $"Question:\n{request.Question}\n\nKnowledge base evidence:\n{groundedContext}\n\nAnswer the question using only the evidence above. Keep the answer concise and operational."
+            },
         },
         temperature = 0.2,
     };
@@ -266,12 +343,29 @@ app.MapPost("/ask", async (
     }
 
     logger.LogInformation(
-        "Ask request {RequestId} ok latencyMs={LatencyMs} deployment={Deployment}",
+        "Ask request {RequestId} ok latencyMs={LatencyMs} deployment={Deployment} retrievalHits={RetrievalHits}",
         requestId,
         stopwatch.ElapsedMilliseconds,
-        deployment);
+        deployment,
+        retrievedChunks.Count);
 
-    return Results.Ok(new AskResponse(requestId, stopwatch.ElapsedMilliseconds, answer));
+    var citations = retrievedChunks
+        .Take(Math.Max(retrievalOptions.Value.CitationCount, 1))
+        .Select(static chunk => new AskCitation(
+            chunk.DocId,
+            chunk.ChunkId,
+            chunk.Title,
+            chunk.SourcePath,
+            chunk.Section,
+            chunk.ChunkIndex))
+        .ToArray();
+
+    return Results.Ok(new AskResponse(
+        requestId,
+        stopwatch.ElapsedMilliseconds,
+        answer,
+        citations,
+        new AskRetrieval(retrievalOptions.Value.TopK, retrievedChunks.Count)));
 })
 .WithName("Ask");
 
@@ -373,7 +467,22 @@ finally
 
 public sealed record AskRequest(string Question);
 
-public sealed record AskResponse(Guid RequestId, long LatencyMs, string Answer);
+public sealed record AskResponse(
+    Guid RequestId,
+    long LatencyMs,
+    string Answer,
+    IReadOnlyList<AskCitation> Citations,
+    AskRetrieval Retrieval);
+
+public sealed record AskCitation(
+    string DocId,
+    string ChunkId,
+    string Title,
+    string SourcePath,
+    string? Section,
+    int ChunkIndex);
+
+public sealed record AskRetrieval(int TopK, int HitCount);
 
 public sealed record ChunkPreviewRequest(string Markdown);
 

@@ -8,6 +8,7 @@ Accept: application/json
 POST {{baseUrl}}/ask
 Content-Type: application/json
 
+# Response includes: answer, citations[], retrieval{topK, hitCount}
 {
   "question": "If a service’s 5xx error rate suddenly spikes, what’s the first step to troubleshoot?"
 }

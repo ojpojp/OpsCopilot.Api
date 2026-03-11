@@ -75,10 +75,20 @@ curl -X POST http://localhost:5200/ask \
 
 Expected response shape:
 ```json
-{"requestId":"...","latencyMs":1234,"answer":"..."}
+{"requestId":"...","latencyMs":1234,"answer":"...","citations":[...],"retrieval":{"topK":3,"hitCount":3}}
 ```
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
+
+`/ask` now uses a minimal RAG flow:
+- generate an embedding for the question
+- retrieve top K chunks from Azure AI Search
+- answer using only the retrieved evidence
+- return `citations` and `retrieval` metadata
+
+Retrieval tuning:
+- `KbRetrieval:TopK` controls how many chunks are retrieved
+- `KbRetrieval:CitationCount` controls how many citations are returned
 
 `/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, generates one embedding per chunk, uploads them to Azure AI Search, and returns:
 - `documentsIngested`
