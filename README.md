@@ -55,6 +55,13 @@ dotnet run --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 
 By default the app listens on `http://localhost:5200` (see `./OpsCopilot.Api/Properties/launchSettings.json`).
 
+## Prepare Runbooks
+- Put Markdown runbooks in the directory configured by `KbIngestion:SourceDirectory`.
+- The current development default is `sample-runbooks/`.
+- Use one `.md` file per runbook.
+- Prefer a top-level `# Title` and section headings such as `## Overview`, `## Signals`, and `## Actions`.
+- Keep file names stable because `sourcePath` is used in citations and ingest output.
+
 ## Test with curl
 Health:
 ```bash
@@ -89,6 +96,14 @@ If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 Retrieval tuning:
 - `KbRetrieval:TopK` controls how many chunks are retrieved
 - `KbRetrieval:CitationCount` controls how many citations are returned
+
+`citations` fields:
+- `docId`: stable document id for the runbook
+- `chunkId`: stable chunk id inside the indexed document
+- `title`: runbook title
+- `sourcePath`: Markdown file path for the cited runbook
+- `section`: section heading associated with the retrieved chunk
+- `chunkIndex`: chunk position inside the runbook
 
 `/ingest-kb` reads Markdown files from `KbIngestion:SourceDirectory`, chunks them, generates one embedding per chunk, uploads them to Azure AI Search, and returns:
 - `documentsIngested`
