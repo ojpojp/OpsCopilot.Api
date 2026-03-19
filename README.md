@@ -16,6 +16,7 @@ Required:
 - `AZURE_OPENAI_DEPLOYMENT` (your deployment name, e.g. `opscopilot-gpt-5-chat`)
 - `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` (your embeddings deployment name)
 - `AZURE_OPENAI_API_VERSION` (example: `2025-01-01-preview`)
+- `AZURE_OPENAI_EMBEDDING_API_VERSION` (example: `2023-05-15`)
 - `AZURE_SEARCH_ENDPOINT` (example: `https://<search-name>.search.windows.net`)
 - `AZURE_SEARCH_API_KEY`
 - `AZURE_SEARCH_INDEX`
@@ -36,6 +37,7 @@ dotnet user-secrets set "AZURE_OPENAI_API_KEY" "your-openai-key" --project ./Ops
 dotnet user-secrets set "AZURE_OPENAI_DEPLOYMENT" "opscopilot-gpt-5-chat" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 dotnet user-secrets set "AZURE_OPENAI_EMBEDDING_DEPLOYMENT" "opscopilot-embedding" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 dotnet user-secrets set "AZURE_OPENAI_API_VERSION" "2025-01-01-preview" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
+dotnet user-secrets set "AZURE_OPENAI_EMBEDDING_API_VERSION" "2023-05-15" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 dotnet user-secrets set "AZURE_SEARCH_ENDPOINT" "https://your-search.search.windows.net" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 dotnet user-secrets set "AZURE_SEARCH_API_KEY" "your-search-key" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj
 dotnet user-secrets set "AZURE_SEARCH_INDEX" "opscopilot-kb" --project ./OpsCopilot.Api/OpsCopilot.Api.csproj

@@ -28,7 +28,7 @@ public sealed class AzureOpenAiEmbeddingService
         if (string.IsNullOrWhiteSpace(_options.Endpoint)) missing.Add("AZURE_OPENAI_ENDPOINT");
         if (string.IsNullOrWhiteSpace(_options.ApiKey)) missing.Add("AZURE_OPENAI_API_KEY");
         if (string.IsNullOrWhiteSpace(_options.Deployment)) missing.Add("AZURE_OPENAI_EMBEDDING_DEPLOYMENT");
-        if (string.IsNullOrWhiteSpace(_options.ApiVersion)) missing.Add("AZURE_OPENAI_API_VERSION");
+        if (string.IsNullOrWhiteSpace(_options.ApiVersion)) missing.Add("AZURE_OPENAI_EMBEDDING_API_VERSION");
 
         return missing;
     }

@@ -42,7 +42,7 @@ builder.Services.Configure<AzureOpenAiEmbeddingsOptions>(options =>
     options.Endpoint = builder.Configuration["AZURE_OPENAI_ENDPOINT"];
     options.ApiKey = builder.Configuration["AZURE_OPENAI_API_KEY"];
     options.Deployment = builder.Configuration["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"];
-    options.ApiVersion = builder.Configuration["AZURE_OPENAI_API_VERSION"];
+    options.ApiVersion = builder.Configuration["AZURE_OPENAI_EMBEDDING_API_VERSION"];
 });
 builder.Services.Configure<AzureSearchOptions>(options =>
 {
