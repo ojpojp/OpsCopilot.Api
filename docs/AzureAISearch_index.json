@@ -97,7 +97,7 @@
       "sortable": false,
       "facetable": false,
       "key": false,
-      "dimensions": 1536,
+      "dimensions": 3072,
       "vectorSearchProfile": "content-vector-profile",
       "synonymMaps": []
     },
