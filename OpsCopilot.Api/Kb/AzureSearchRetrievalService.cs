@@ -48,7 +48,7 @@ public sealed class AzureSearchRetrievalService
             $"{_options.Endpoint!.TrimEnd('/')}/indexes/{Uri.EscapeDataString(_options.IndexName!)}/docs/search?api-version={Uri.EscapeDataString(_options.ApiVersion)}",
             UriKind.Absolute);
 
-        var payload = new SearchRequest(
+        var payload = new VectorSearchRequest(
             Count: true,
             Select: "id,docId,title,sourcePath,chunkIndex,section,content",
             VectorQueries:
@@ -78,6 +78,50 @@ public sealed class AzureSearchRetrievalService
 
             throw new InvalidOperationException(TryExtractErrorMessage(responseBody)
                 ?? $"Azure Search retrieval failed with status {(int)response.StatusCode}");
+        }
+
+        return ParseResults(responseBody);
+    }
+
+    public async Task<IReadOnlyList<RetrievedChunk>> SearchByKeywordAsync(
+        string query,
+        int topK,
+        CancellationToken cancellationToken)
+    {
+        var missing = GetMissingConfiguration();
+        if (missing.Count > 0)
+        {
+            throw new InvalidOperationException($"Missing Azure Search configuration: {string.Join(", ", missing)}");
+        }
+
+        var requestUri = new Uri(
+            $"{_options.Endpoint!.TrimEnd('/')}/indexes/{Uri.EscapeDataString(_options.IndexName!)}/docs/search?api-version={Uri.EscapeDataString(_options.ApiVersion)}",
+            UriKind.Absolute);
+
+        var payload = new KeywordSearchRequest(
+            Count: true,
+            Search: query,
+            Top: topK,
+            Select: "id,docId,title,sourcePath,chunkIndex,section,content");
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        request.Headers.Add("api-key", _options.ApiKey);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        var client = _httpClientFactory.CreateClient();
+        using var response = await client.SendAsync(request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning(
+                "Azure Search keyword retrieval failed status={StatusCode} index={IndexName}",
+                (int)response.StatusCode,
+                _options.IndexName);
+
+            throw new InvalidOperationException(TryExtractErrorMessage(responseBody)
+                ?? $"Azure Search keyword retrieval failed with status {(int)response.StatusCode}");
         }
 
         return ParseResults(responseBody);
@@ -140,10 +184,16 @@ public sealed class AzureSearchRetrievalService
         }
     }
 
-    private sealed record SearchRequest(
+    private sealed record VectorSearchRequest(
         [property: JsonPropertyName("count")] bool Count,
         [property: JsonPropertyName("select")] string Select,
         [property: JsonPropertyName("vectorQueries")] IReadOnlyList<VectorQuery> VectorQueries);
+
+    private sealed record KeywordSearchRequest(
+        [property: JsonPropertyName("count")] bool Count,
+        [property: JsonPropertyName("search")] string Search,
+        [property: JsonPropertyName("top")] int Top,
+        [property: JsonPropertyName("select")] string Select);
 
     private sealed record VectorQuery(
         [property: JsonPropertyName("kind")] string Kind,

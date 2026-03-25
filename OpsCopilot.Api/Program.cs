@@ -440,6 +440,55 @@ app.MapPost("/ingest-kb", async (
 
 if (app.Environment.IsDevelopment())
 {
+    app.MapPost("/debug/search-keyword", async (
+        KeywordSearchRequest request,
+        Microsoft.Extensions.Options.IOptions<KbRetrievalOptions> retrievalOptions,
+        AzureSearchRetrievalService retrievalService,
+        CancellationToken cancellationToken) =>
+    {
+        if (string.IsNullOrWhiteSpace(request.Query))
+        {
+            return Results.BadRequest(new
+            {
+                error = "invalid_request",
+                message = "query is required",
+            });
+        }
+
+        var missingSearchConfig = retrievalService.GetMissingConfiguration();
+        if (missingSearchConfig.Count > 0)
+        {
+            return Results.BadRequest(new
+            {
+                error = "missing_config",
+                missing = missingSearchConfig,
+            });
+        }
+
+        var keywordHits = await retrievalService.SearchByKeywordAsync(
+            request.Query,
+            retrievalOptions.Value.TopK,
+            cancellationToken);
+
+        return Results.Ok(new
+        {
+            mode = "keyword",
+            topK = retrievalOptions.Value.TopK,
+            hits = keywordHits.Count,
+            results = keywordHits.Select(static hit => new
+            {
+                hit.DocId,
+                hit.ChunkId,
+                hit.Score,
+                hit.Title,
+                hit.SourcePath,
+                hit.ChunkIndex,
+                hit.Section,
+            }),
+        });
+    })
+    .WithName("KeywordSearch");
+
     app.MapPost("/debug/chunk-preview", (
         ChunkPreviewRequest request,
         MarkdownChunker chunker,
@@ -485,6 +534,8 @@ public sealed record AskCitation(
 public sealed record AskRetrieval(int TopK, int HitCount);
 
 public sealed record ChunkPreviewRequest(string Markdown);
+
+public sealed record KeywordSearchRequest(string Query);
 
 public sealed record IngestKbResponse(
     int DocumentsIngested,

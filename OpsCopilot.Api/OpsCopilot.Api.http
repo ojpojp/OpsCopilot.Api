@@ -30,6 +30,15 @@ Accept: application/json
 
 ###
 
+POST {{baseUrl}}/debug/search-keyword
+Content-Type: application/json
+
+{
+  "query": "5xx timeout dependency"
+}
+
+###
+
 POST {{baseUrl}}/debug/chunk-preview
 Content-Type: application/json
 
