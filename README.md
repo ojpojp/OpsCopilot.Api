@@ -96,7 +96,10 @@ If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 - return `citations` and `retrieval` metadata
 
 Retrieval tuning:
+- `KbRetrieval:Mode` controls which retrieval path is used: `vector`, `keyword`, or `hybrid`
 - `KbRetrieval:TopK` controls how many chunks are retrieved
+- `KbRetrieval:KeywordWeight` controls the keyword score contribution in hybrid mode
+- `KbRetrieval:VectorWeight` controls the vector score contribution in hybrid mode
 - `KbRetrieval:CitationCount` controls how many citations are returned
 
 `citations` fields:

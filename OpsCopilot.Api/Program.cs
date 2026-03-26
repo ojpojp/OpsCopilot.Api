@@ -57,6 +57,7 @@ builder.Services.AddSingleton<MarkdownChunker>();
 builder.Services.AddSingleton<AzureOpenAiEmbeddingService>();
 builder.Services.AddSingleton<AzureSearchIndexingService>();
 builder.Services.AddSingleton<AzureSearchRetrievalService>();
+builder.Services.AddSingleton<HybridRetrievalService>();
 builder.Services.AddSingleton<KbIngestionService>();
 
 var app = builder.Build();
@@ -164,6 +165,7 @@ app.MapPost("/ask", async (
     Microsoft.Extensions.Options.IOptions<KbRetrievalOptions> retrievalOptions,
     AzureOpenAiEmbeddingService embeddingService,
     AzureSearchRetrievalService retrievalService,
+    HybridRetrievalService hybridRetrievalService,
     IHttpClientFactory httpClientFactory,
     ILogger<Program> logger,
     CancellationToken cancellationToken) =>
@@ -221,13 +223,13 @@ app.MapPost("/ask", async (
     }
 
     IReadOnlyList<float> questionEmbedding;
-    IReadOnlyList<RetrievedChunk> retrievedChunks;
+    HybridRetrievalResult retrievalResult;
     try
     {
         questionEmbedding = await embeddingService.GenerateEmbeddingAsync(request.Question, cancellationToken);
-        retrievedChunks = await retrievalService.SearchAsync(
+        retrievalResult = await hybridRetrievalService.RetrieveAsync(
+            request.Question,
             questionEmbedding,
-            retrievalOptions.Value.TopK,
             cancellationToken);
     }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -241,13 +243,15 @@ app.MapPost("/ask", async (
         return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Retrieval failed");
     }
 
+    var retrievedChunks = retrievalResult.Hits;
     if (retrievedChunks.Count == 0)
     {
         stopwatch.Stop();
         logger.LogInformation(
-            "Ask request {RequestId} no retrieval hits latencyMs={LatencyMs}",
+            "Ask request {RequestId} no retrieval hits latencyMs={LatencyMs} mode={Mode}",
             requestId,
-            stopwatch.ElapsedMilliseconds);
+            stopwatch.ElapsedMilliseconds,
+            retrievalResult.Mode);
 
         return Results.Ok(new AskResponse(
             requestId,
@@ -343,10 +347,11 @@ app.MapPost("/ask", async (
     }
 
     logger.LogInformation(
-        "Ask request {RequestId} ok latencyMs={LatencyMs} deployment={Deployment} retrievalHits={RetrievalHits}",
+        "Ask request {RequestId} ok latencyMs={LatencyMs} deployment={Deployment} retrievalMode={RetrievalMode} retrievalHits={RetrievalHits}",
         requestId,
         stopwatch.ElapsedMilliseconds,
         deployment,
+        retrievalResult.Mode,
         retrievedChunks.Count);
 
     var citations = retrievedChunks
@@ -488,6 +493,65 @@ if (app.Environment.IsDevelopment())
         });
     })
     .WithName("KeywordSearch");
+
+    app.MapPost("/debug/search-hybrid", async (
+        KeywordSearchRequest request,
+        AzureOpenAiEmbeddingService embeddingService,
+        AzureSearchRetrievalService retrievalService,
+        HybridRetrievalService hybridRetrievalService,
+        CancellationToken cancellationToken) =>
+    {
+        if (string.IsNullOrWhiteSpace(request.Query))
+        {
+            return Results.BadRequest(new
+            {
+                error = "invalid_request",
+                message = "query is required",
+            });
+        }
+
+        var missingEmbeddingsConfig = embeddingService.GetMissingConfiguration();
+        if (missingEmbeddingsConfig.Count > 0)
+        {
+            return Results.BadRequest(new
+            {
+                error = "missing_config",
+                missing = missingEmbeddingsConfig,
+            });
+        }
+
+        var missingSearchConfig = retrievalService.GetMissingConfiguration();
+        if (missingSearchConfig.Count > 0)
+        {
+            return Results.BadRequest(new
+            {
+                error = "missing_config",
+                missing = missingSearchConfig,
+            });
+        }
+
+        var embedding = await embeddingService.GenerateEmbeddingAsync(request.Query, cancellationToken);
+        var result = await hybridRetrievalService.RetrieveAsync(request.Query, embedding, cancellationToken);
+
+        return Results.Ok(new
+        {
+            result.Mode,
+            hits = result.Hits.Count,
+            result.KeywordWeight,
+            result.VectorWeight,
+            results = result.Hits.Select(static hit => new
+            {
+                hit.DocId,
+                hit.ChunkId,
+                hit.Score,
+                hit.Title,
+                hit.SourcePath,
+                hit.ChunkIndex,
+                hit.Section,
+            }),
+        });
+    })
+    .WithName("HybridSearch");
 
     app.MapPost("/debug/chunk-preview", (
         ChunkPreviewRequest request,

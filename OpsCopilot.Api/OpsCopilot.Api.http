@@ -39,6 +39,15 @@ Content-Type: application/json
 
 ###
 
+POST {{baseUrl}}/debug/search-hybrid
+Content-Type: application/json
+
+{
+  "query": "5xx timeout dependency"
+}
+
+###
+
 POST {{baseUrl}}/debug/chunk-preview
 Content-Type: application/json
 
