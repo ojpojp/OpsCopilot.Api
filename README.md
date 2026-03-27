@@ -84,7 +84,7 @@ curl -X POST http://localhost:5200/ask \
 
 Expected response shape:
 ```json
-{"requestId":"...","latencyMs":1234,"answer":"...","citations":[...],"retrieval":{"topK":3,"hitCount":3}}
+{"requestId":"...","latencyMs":1234,"answer":"...","citations":[...],"retrieval":{"topK":3,"mode":"hybrid","hits":3,"docIds":["...","...","..."]}}
 ```
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
@@ -94,6 +94,12 @@ If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
 - retrieve top K chunks from Azure AI Search
 - answer using only the retrieved evidence
 - return `citations` and `retrieval` metadata
+
+`retrieval` fields:
+- `topK`: configured retrieval limit
+- `mode`: retrieval mode used for this request (`vector`, `keyword`, or `hybrid`)
+- `hits`: number of retrieved chunks
+- `docIds`: first 3 retrieved document ids for quick manual inspection
 
 Retrieval tuning:
 - `KbRetrieval:Mode` controls which retrieval path is used: `vector`, `keyword`, or `hybrid`

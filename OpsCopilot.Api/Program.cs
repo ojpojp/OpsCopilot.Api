@@ -258,7 +258,11 @@ app.MapPost("/ask", async (
             stopwatch.ElapsedMilliseconds,
             "I could not find enough evidence in the knowledge base to answer this question.",
             Array.Empty<AskCitation>(),
-            new AskRetrieval(retrievalOptions.Value.TopK, 0)));
+            new AskRetrieval(
+                retrievalOptions.Value.TopK,
+                retrievalResult.Mode,
+                0,
+                Array.Empty<string>())));
     }
 
     var requestUri = new Uri(
@@ -370,7 +374,11 @@ app.MapPost("/ask", async (
         stopwatch.ElapsedMilliseconds,
         answer,
         citations,
-        new AskRetrieval(retrievalOptions.Value.TopK, retrievedChunks.Count)));
+        new AskRetrieval(
+            retrievalOptions.Value.TopK,
+            retrievalResult.Mode,
+            retrievedChunks.Count,
+            retrievedChunks.Take(3).Select(static chunk => chunk.DocId).ToArray())));
 })
 .WithName("Ask");
 
@@ -595,7 +603,11 @@ public sealed record AskCitation(
     string? Section,
     int ChunkIndex);
 
-public sealed record AskRetrieval(int TopK, int HitCount);
+public sealed record AskRetrieval(
+    int TopK,
+    string Mode,
+    int Hits,
+    IReadOnlyList<string> DocIds);
 
 public sealed record ChunkPreviewRequest(string Markdown);
 
