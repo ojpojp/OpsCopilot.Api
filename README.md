@@ -137,3 +137,11 @@ File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 ## Eval (W1)
 - Question set: `./eval/questions.jsonl`
 - Failure taxonomy: `./eval/failure-taxonomy.md`
+
+## Week 03 Chunk Experiments
+- Run `./scripts/run-week03-chunk-experiments.sh` to test the default W3 matrix:
+- `800/0`
+- `800/200`
+- `1200/0`
+- `1200/200`
+- The script starts the API with chunk overrides, runs `/ingest-kb`, executes the eval script, and writes a summary under `eval/results/week-03-chunk-experiments/`

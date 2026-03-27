@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 BASE_URL="${BASE_URL:-http://localhost:5200}"
-QUESTIONS_FILE="${QUESTIONS_FILE:-eval/questions.jsonl}"
-OUTPUT_DIR="${OUTPUT_DIR:-eval/results}"
+QUESTIONS_FILE="${QUESTIONS_FILE:-$REPO_ROOT/eval/questions.jsonl}"
+OUTPUT_DIR="${OUTPUT_DIR:-$REPO_ROOT/eval/results}"
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
 DETAILS_FILE="$OUTPUT_DIR/week-02-eval-$TIMESTAMP.jsonl"
 SUMMARY_FILE="$OUTPUT_DIR/week-02-eval-$TIMESTAMP.md"
@@ -53,8 +56,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   citations_count="$(jq -r '(.citations // []) | length' <<<"$raw_response")"
-  hit_count="$(jq -r '.retrieval.hitCount // 0' <<<"$raw_response")"
+  hit_count="$(jq -r '.retrieval.hits // .retrieval.hitCount // 0' <<<"$raw_response")"
   top_k="$(jq -r '.retrieval.topK // 0' <<<"$raw_response")"
+  retrieval_mode="$(jq -r '.retrieval.mode // ""' <<<"$raw_response")"
   latency_ms="$(jq -r '.latencyMs // 0' <<<"$raw_response")"
   first_citation_title="$(jq -r '(.citations[0].title // "")' <<<"$raw_response")"
   status="ok"
@@ -76,10 +80,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     --argjson citationsCount "$citations_count" \
     --argjson hitCount "$hit_count" \
     --argjson topK "$top_k" \
+    --arg retrievalMode "$retrieval_mode" \
     --argjson latencyMs "$latency_ms" \
     --arg firstCitationTitle "$first_citation_title" \
     --argjson response "$(jq -c . <<<"$raw_response")" \
-    '{id:$id,question:$question,status:$status,citationsCount:$citationsCount,hitCount:$hitCount,topK:$topK,latencyMs:$latencyMs,firstCitationTitle:$firstCitationTitle,response:$response}' >>"$DETAILS_FILE"
+    '{id:$id,question:$question,status:$status,citationsCount:$citationsCount,hitCount:$hitCount,topK:$topK,retrievalMode:$retrievalMode,latencyMs:$latencyMs,firstCitationTitle:$firstCitationTitle,response:$response}' >>"$DETAILS_FILE"
 done <"$QUESTIONS_FILE"
 
 citation_coverage="0.0000"
