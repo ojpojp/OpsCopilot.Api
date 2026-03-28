@@ -7,7 +7,7 @@ public sealed class KbRetrievalOptions
     /// <summary>
     /// Retrieval mode: vector, keyword, or hybrid.
     /// </summary>
-    public string Mode { get; set; } = "hybrid";
+    public string Mode { get; set; } = "vector";
 
     /// <summary>
     /// Number of chunks to retrieve from Azure AI Search for each question.

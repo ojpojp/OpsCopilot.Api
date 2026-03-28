@@ -58,7 +58,7 @@ Content-Type: application/json
 ###
 
 # Large example (~5000 chars) to test chunk splitting/overlap with current defaults:
-# KbChunking:ChunkSizeChars=2000, ChunkOverlapChars=200
+# KbChunking:ChunkSizeChars=1200, ChunkOverlapChars=200
 POST {{baseUrl}}/debug/chunk-preview
 Content-Type: application/json
 

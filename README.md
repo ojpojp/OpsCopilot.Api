@@ -84,7 +84,7 @@ curl -X POST http://localhost:5200/ask \
 
 Expected response shape:
 ```json
-{"requestId":"...","latencyMs":1234,"answer":"...","citations":[...],"retrieval":{"topK":3,"mode":"hybrid","hits":3,"docIds":["...","...","..."]}}
+{"requestId":"...","latencyMs":1234,"answer":"...","citations":[...],"retrieval":{"topK":3,"mode":"vector","hits":3,"docIds":["...","...","..."]}}
 ```
 
 If any Azure env var is missing, `/ask` returns HTTP 400 with the missing list.
@@ -107,6 +107,8 @@ Retrieval tuning:
 - `KbRetrieval:KeywordWeight` controls the keyword score contribution in hybrid mode
 - `KbRetrieval:VectorWeight` controls the vector score contribution in hybrid mode
 - `KbRetrieval:CitationCount` controls how many citations are returned
+- Current baseline from W3: `KbRetrieval:Mode=vector`
+- Current chunk baseline from W3: `KbChunking:ChunkSizeChars=1200`, `KbChunking:ChunkOverlapChars=200`
 
 `citations` fields:
 - `docId`: stable document id for the runbook
@@ -145,3 +147,5 @@ File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 - `1200/0`
 - `1200/200`
 - The script starts the API with chunk overrides, runs `/ingest-kb`, executes the eval script, and writes a summary under `eval/results/week-03-chunk-experiments/`
+- Current report: `./eval/week-03-report.md`
+- Current W4 baseline: `1200/200` with `vector` retrieval

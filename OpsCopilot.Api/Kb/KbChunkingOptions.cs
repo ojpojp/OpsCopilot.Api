@@ -10,7 +10,7 @@ public sealed class KbChunkingOptions
     /// <summary>
     /// Target maximum chunk size in characters. Chunks are packed up to (but not exceeding) this size.
     /// </summary>
-    public int ChunkSizeChars { get; set; } = 2000;
+    public int ChunkSizeChars { get; set; } = 1200;
 
     /// <summary>
     /// Number of trailing characters from the previous chunk to prepend to the next chunk (simple overlap).
