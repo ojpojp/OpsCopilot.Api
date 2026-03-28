@@ -149,3 +149,14 @@ File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 - The script starts the API with chunk overrides, runs `/ingest-kb`, executes the eval script, and writes a summary under `eval/results/week-03-chunk-experiments/`
 - Current report: `./eval/week-03-report.md`
 - Current W4 baseline: `1200/200` with `vector` retrieval
+
+## Week 03 Baseline
+- Default retrieval mode: `vector`
+- Default chunking: `KbChunking:ChunkSizeChars=1200`, `KbChunking:ChunkOverlapChars=200`
+- Week 03 report: `./eval/week-03-report.md`
+- Week 03 manual scoring sheet: `./eval/week-03-score.md`
+
+Week 03 conclusions:
+- On the current sample corpus, `vector` performed better than `hybrid` in the labeled check.
+- The four chunk experiments did not materially change retrieval quality because the current runbooks are short and still produced one chunk per document.
+- Keep `hybrid` available for further experiments, but use `vector` as the baseline mode until a larger or longer corpus shows a clear benefit.
