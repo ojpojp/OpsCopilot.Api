@@ -136,6 +136,49 @@ File: `./OpsCopilot.Api/OpsCopilot.Api.http`
 - Console + rolling file logs (daily): `./OpsCopilot.Api/logs/opscopilot-YYYYMMDD.log`
 - `logs/` and `*.log` are ignored by git (see `.gitignore`)
 
+## Week 04 Log Search Contract
+- Mock log fixtures live under `./fixtures/logs/`
+- Tool contract models live under `./OpsCopilot.Api/Tools/LogSearch/`
+- Configuration section: `LogSearch`
+
+Request contract:
+```json
+{
+  "query": "payments-api 5xx connection pool timeout",
+  "fromUtc": "2026-04-07T13:58:00Z",
+  "toUtc": "2026-04-07T14:00:00Z",
+  "maxResults": 10
+}
+```
+
+Response contract:
+```json
+{
+  "queryId": "...",
+  "query": "...",
+  "fromUtc": "2026-04-07T13:58:00Z",
+  "toUtc": "2026-04-07T14:00:00Z",
+  "totalHits": 2,
+  "events": [
+    {
+      "timeUtc": "2026-04-07T13:58:09Z",
+      "service": "payments-api",
+      "region": "eastus",
+      "level": "Error",
+      "message": "HTTP 500 returned by ChargeHandler exception=SqlException message=Timeout expired while waiting for connection from pool",
+      "requestId": "pay-1001",
+      "traceId": "trace-pay-001",
+      "scenario": "payments-api-5xx-eastus"
+    }
+  ]
+}
+```
+
+Safety limits:
+- `MaxTimeRangeHours=24`
+- `MaxResults=50`
+- `MaxQueryLength=200`
+
 ## Eval (W1)
 - Question set: `./eval/questions.jsonl`
 - Failure taxonomy: `./eval/failure-taxonomy.md`

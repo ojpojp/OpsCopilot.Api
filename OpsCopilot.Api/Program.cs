@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using OpsCopilot.Api.Kb;
+using OpsCopilot.Api.Tools.LogSearch;
 using Serilog;
 using Serilog.Events;
 
@@ -53,6 +54,7 @@ builder.Services.Configure<AzureSearchOptions>(options =>
 });
 builder.Services.Configure<KbIngestionPipelineOptions>(builder.Configuration.GetSection(KbIngestionPipelineOptions.SectionName));
 builder.Services.Configure<KbRetrievalOptions>(builder.Configuration.GetSection(KbRetrievalOptions.SectionName));
+builder.Services.Configure<LogSearchOptions>(builder.Configuration.GetSection(LogSearchOptions.SectionName));
 builder.Services.AddSingleton<MarkdownChunker>();
 builder.Services.AddSingleton<AzureOpenAiEmbeddingService>();
 builder.Services.AddSingleton<AzureSearchIndexingService>();
