@@ -61,6 +61,7 @@ builder.Services.AddSingleton<AzureSearchIndexingService>();
 builder.Services.AddSingleton<AzureSearchRetrievalService>();
 builder.Services.AddSingleton<HybridRetrievalService>();
 builder.Services.AddSingleton<KbIngestionService>();
+builder.Services.AddSingleton<MockLogSearchService>();
 
 var app = builder.Build();
 
@@ -562,6 +563,31 @@ if (app.Environment.IsDevelopment())
         });
     })
     .WithName("HybridSearch");
+
+    app.MapPost("/debug/search-logs", async (
+        LogSearchRequest request,
+        MockLogSearchService logSearchService,
+        CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            var result = await logSearchService.SearchAsync(request, cancellationToken);
+            return Results.Ok(result);
+        }
+        catch (LogSearchValidationException ex)
+        {
+            return Results.BadRequest(new
+            {
+                error = "invalid_log_search_request",
+                message = ex.Message,
+            });
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, title: ex.Message);
+        }
+    })
+    .WithName("LogSearch");
 
     app.MapPost("/debug/chunk-preview", (
         ChunkPreviewRequest request,

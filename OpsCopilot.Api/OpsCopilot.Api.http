@@ -48,6 +48,21 @@ Content-Type: application/json
 
 ###
 
+# W4 search_logs contract example.
+# This endpoint is implemented in W4 Build 3.
+# Input contract: query, fromUtc, toUtc, maxResults.
+POST {{baseUrl}}/debug/search-logs
+Content-Type: application/json
+
+{
+  "query": "payments-api 5xx connection pool timeout",
+  "fromUtc": "2026-04-07T13:58:00Z",
+  "toUtc": "2026-04-07T14:00:00Z",
+  "maxResults": 10
+}
+
+###
+
 POST {{baseUrl}}/debug/chunk-preview
 Content-Type: application/json
 
